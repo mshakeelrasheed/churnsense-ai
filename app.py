@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import time
 
 # ==========================================
-# 1. PREMIUM PAGE ENGINE & THEME CONFIG
+# 1. PAGE ENGINE & THEME CONFIG
 # ==========================================
 st.set_page_config(
     page_title="ChurnSense AI — Intelligence Dashboard",
@@ -43,7 +43,7 @@ st.markdown("""
 col_header, col_badge = st.columns([4, 1])
 with col_header:
     st.title("🔮 ChurnSense AI — Customer Intelligence Hub")
-    st.caption("Predict enterprise churn risk vectors, capture behavioral drivers, and dispatch automated target retention playbooks.")
+    st.caption("Identify customer risk, understand key drivers, and view suggested retention strategies.")
 with col_badge:
     st.markdown("<br>", unsafe_allow_html=True)
     st.status("Model Version v2.1", state="complete")
@@ -78,8 +78,13 @@ FEATURE_ORDER = [
 # ==========================================
 # 3. INTERACTIVE SIDEBAR CONFIGURATOR
 # ==========================================
-st.sidebar.markdown("### 🎯 **Primary Customer Profile**")
-st.sidebar.caption("Adjust configuration telemetry values below:")
+st.sidebar.markdown("### 🎯 **Customer Profile**")
+
+# Toggle for Auto vs Manual Execution
+auto_mode = st.sidebar.toggle("⚡ Auto-Update Predictions", value=True)
+analyze_btn = st.sidebar.button("🔍 Analyze Profile", disabled=auto_mode, type="primary")
+
+st.sidebar.markdown("---")
 
 # Primary High-Impact Features
 tenure = st.sidebar.number_input("Tenure (Months)", min_value=0, max_value=60, value=2)
@@ -104,6 +109,14 @@ with st.sidebar.expander("⚙️ Additional Profile Details", expanded=False):
     coupon_used = st.number_input("Coupons Used", min_value=0, max_value=30, value=1)
     order_count = st.number_input("Total Order Count", min_value=1, max_value=100, value=2)
 
+# Execution Gate: Stop rendering if manual mode is on and button hasn't been clicked
+if not auto_mode and not analyze_btn:
+    st.info("👈 Update the customer details in the sidebar, then click **'Analyze Profile'** to view the churn risk and recommendations.")
+    st.stop()
+
+# ==========================================
+# 4. RUN INFERENCE & PROCESS DATA
+# ==========================================
 # Collect Raw Inputs
 raw_inputs = {
     'Tenure': tenure, 'PreferredLoginDevice': login_device, 'CityTier': city_tier,
@@ -129,10 +142,9 @@ input_df = pd.DataFrame([encoded_inputs])[FEATURE_ORDER]
 scaled_features = scaler.transform(input_df)
 scaled_df = pd.DataFrame(scaled_features, columns=FEATURE_ORDER)
 
-# ==========================================
-# 4. RUN INFERENCE & ANIMATE LOAD TRANSITION
-# ==========================================
-with st.spinner("Analyzing profile telemetry vectors..."):
+with st.spinner("Analyzing customer profile..."):
+    if not auto_mode:
+        time.sleep(0.5) # Slight delay for manual mode to show analysis is running
     churn_prob = float(model.predict_proba(scaled_df)[0][1])
     churn_percent = churn_prob * 100
 
@@ -149,64 +161,82 @@ col_left, col_right = st.columns([1, 1.1])
 
 with col_left:
     with st.container(border=True):
-        st.markdown("### 🎯 **Risk Assessment Metrics**")
+        st.markdown("### 🎯 **Risk Assessment**")
         
         # Display contextual color banners and status values
         if churn_prob >= 0.5:
-            st.error(f"### 🚨 High Churn Risk Explored\n**Action Status Required:** Probability stands at **{churn_percent:.1f}%**")
+            st.error(f"### 🚨 High Churn Risk\n**Alert:** This customer is likely to leave.\n\nProbability of leaving: **{churn_percent:.1f}%**")
         else:
-            st.success(f"### ✅ Low Churn Risk Maintained\n**Action Status Monitored:** Probability stands at **{churn_percent:.1f}%**")
+            st.success(f"### ✅ Low Churn Risk\n**Status:** This customer is currently safe.\n\nProbability of leaving: **{churn_percent:.1f}%**")
         
         # High impact metric card UI design
         delta_sign = "+" if churn_prob >= 0.5 else "-"
         st.metric(
-            label="Overall Churn Telemetry Score", 
+            label="Overall Risk Score", 
             value=f"{churn_percent:.1f}%", 
-            delta=f"{delta_sign}{abs(churn_percent - 50):.1f}% vs baseline risk threshold",
+            delta=f"{delta_sign}{abs(churn_percent - 50):.1f}% vs baseline",
             delta_color="inverse" if churn_prob < 0.5 else "normal"
         )
 
 with col_right:
     with st.container(border=True):
-        st.markdown("### 💡 **Neural Key Drivers**")
-        st.caption("Highest impact feature vectors forcing positive risk drift for this customer file:")
+        st.markdown("### 💡 **Main Risk Factors**")
+        st.caption("The main reasons influencing this customer's risk score:")
         
         if len(top_risk_factors) > 0:
             for feat, val in top_risk_factors.head(4).items():
                 raw_val = raw_inputs[feat]
-                # Utilizing individual status wrappers as premium visual pill bars
-                st.markdown(f"🔹 **{feat}** is elevated (Current Metric: `{raw_val}`)")
+                st.markdown(f"🔹 **{feat}**: `{raw_val}`")
         else:
-            st.info("No risk-driving anomalies detected within this configuration file.")
+            st.info("No major risk factors detected for this profile.")
 
 st.markdown("<br>", unsafe_allow_html=True)
 
 # ==========================================
-# 6. AUTOMATED RETENTION RECOMMENDATIONS 
+# 6. SUGGESTED RECOMMENDATIONS 
 # ==========================================
-st.subheader("📋 Autonomous Action Playbooks")
+st.subheader("📋 **Suggested Actions**")
 
 # Logic engine tracking
 recs = []
 if complain == 1:
-    recs.append(("🚨 Priority Support Escalation", "Unresolved Customer Complaint detected. Route ticket immediately to premier accounts squad and issue a $25 system credit gesture."))
+    recs.append(("🚨 Resolve Complaint", "This customer has an active complaint. Reach out immediately to resolve their issue and offer a small store credit as an apology."))
 if satisfaction_score <= 2:
-    recs.append(("⭐ Target Satisfaction Campaign", "Low satisfaction rating recorded. Trigger outbound CX automated review schedule with a standard follow-up call."))
+    recs.append(("⭐ Improve Satisfaction", "The customer's satisfaction rating is low. Send a brief follow-up email to understand what went wrong during their last experience."))
 if days_since_last_order > 14:
-    recs.append(("🛒 Active Inactivity Re-engagement", f"User inactivity window exceeded. Automate target drop voucher tailored precisely to categories like: **{preferred_order_cat}**."))
+    recs.append(("🛒 Re-engagement Offer", f"It has been a while since their last order. Send them a personalized discount code for their favorite category: **{preferred_order_cat}**."))
 if tenure <= 3:
-    recs.append(("🆕 VIP Onboarding Fast-Track", "Early account phase risk alert. Enroll individual profile into interactive high-touch satisfaction checkpoints."))
+    recs.append(("🆕 Welcome Follow-up", "This is a new customer. Send them a welcome guide or a special perk to build early loyalty."))
 if cashback_amount < 100:
-    recs.append(("💰 Financial Loyalty Boost", "Sub-optimal account interaction. Apply a structural 2x cashback growth milestone challenge block to spark checkout activity."))
+    recs.append(("💰 Offer Incentives", "Increase their cashback reward slightly on their next purchase to encourage them to buy again."))
 
 if not recs:
     with st.container(border=True):
-        st.balloons() # Trigger minor visual achievement celebration
-        st.success("🎉 **Optimal Profile Ecosystem:** Customer accounts display high retention values. Keep default standard automated workflow pipelines active.")
+        st.balloons() 
+        st.success("🎉 **Customer is Healthy:** No immediate action is required. Maintain standard marketing communications.")
 else:
-    # Render premium interactive status log elements sequentially
-    with st.status("Analyzing retention pathways...", expanded=True) as playbook_status:
-        time.sleep(0.7)
+    # Render interactive status log elements
+    with st.status("Generating recommendations based on profile...", expanded=True) as playbook_status:
+        if auto_mode:
+            time.sleep(0.3)
         for label, description in recs:
             with st.container(border=True):
-                st.markdown(f"**{label}**")
+                st.markdown(f"**{label}**\n\n{description}")
+
+st.markdown("---")
+
+# ==========================================
+# 7. ADVANCED SHAP ANALYSIS (COLLAPSIBLE)
+# ==========================================
+with st.expander("🔍 **Advanced Analysis (SHAP Graph)**", expanded=False):
+    st.caption("This visualization breaks down exactly how much each feature contributed to the final probability calculation.")
+    fig, ax = plt.subplots(figsize=(8, 4))
+    # Generate the waterfall plot
+    shap.plots.waterfall(shap_vals[0], show=False)
+    # Tweak the plot styling for dark mode visibility
+    fig.patch.set_facecolor('#0E1117')
+    ax.set_facecolor('#0E1117')
+    ax.tick_params(colors='white')
+    ax.xaxis.label.set_color('white')
+    ax.title.set_color('white')
+    st.pyplot(fig)
