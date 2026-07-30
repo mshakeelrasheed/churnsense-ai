@@ -66,37 +66,31 @@ st.markdown("""
     }
 
     /* ==========================================
-       THE "BULLETPROOF" GLOW CSS (HTML ANCHOR TRICK)
+       THE SIBLING TARGET CSS (GUARANTEED GLOW)
        ========================================== */
     
-    /* 1. Targets the COLUMNS directly underneath our hidden anchor */
-    div.element-container:has(#risk-cards-anchor) + div[data-testid="stHorizontalBlock"] [data-testid="column"] > div {
-        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    /* 1. Target the container immediately following our invisible '.glow-trigger' marker */
+    div.element-container:has(.glow-trigger) + div.element-container > div {
         border-radius: 16px !important;
-        padding: 1.5rem !important;
-        background-color: rgba(14, 17, 23, 0.6) !important;
         transition: all 0.3s ease-in-out !important;
     }
 
-    /* Apply the Cyan Hover Effect to the Columns */
-    div.element-container:has(#risk-cards-anchor) + div[data-testid="stHorizontalBlock"] [data-testid="column"] > div:hover {
+    /* Apply the Cyan Hover Effect */
+    div.element-container:has(.glow-trigger) + div.element-container > div:hover {
         border-color: #00E5FF !important;
         box-shadow: 0 0 20px rgba(0, 229, 255, 0.4), inset 0 0 10px rgba(0, 229, 255, 0.15) !important;
         transform: translateY(-4px) !important;
-        z-index: 999 !important;
     }
 
-    /* 2. Retain glow for Expanders, Status Widgets, and internal Containers */
+    /* 2. Retain the glow for the existing Expanders and Status Widgets */
     [data-testid="stExpander"] details,
-    [data-testid="stStatusWidget"] div[role="status"],
-    [data-testid="stVerticalBlockBorderWrapper"] {
+    [data-testid="stStatusWidget"] div[role="status"] {
         border-radius: 16px !important;
         transition: all 0.3s ease-in-out !important;
     }
 
     [data-testid="stExpander"] details:hover,
-    [data-testid="stStatusWidget"] div[role="status"]:hover,
-    [data-testid="stVerticalBlockBorderWrapper"]:hover {
+    [data-testid="stStatusWidget"] div[role="status"]:hover {
         border-color: #00E5FF !important;
         box-shadow: 0 0 20px rgba(0, 229, 255, 0.4), inset 0 0 10px rgba(0, 229, 255, 0.15) !important;
         transform: translateY(-4px) !important;
@@ -228,39 +222,40 @@ top_risk_factors = sample_shap[sample_shap > 0].sort_values(ascending=False)
 # ==========================================
 # 5. SPLIT-PANEL CORE DISPLAY ANALYSIS GRID
 # ==========================================
-
-# THE ANCHOR TRICK: This hidden HTML tells our CSS exactly where to apply the glow
-st.markdown('<div id="risk-cards-anchor"></div>', unsafe_allow_html=True)
 col_left, col_right = st.columns([1, 1.1])
 
 with col_left:
-    # Container is removed - the column itself becomes the glowing card!
-    st.markdown("### 🎯 **Risk Assessment**")
-    
-    if churn_prob >= 0.5:
-        st.error(f"### 🚨 High Churn Risk\n**Alert:** This customer is likely to leave.\n\nProbability of leaving: **{churn_percent:.1f}%**")
-    else:
-        st.success(f"### ✅ Low Churn Risk\n**Status:** This customer is currently safe.\n\nProbability of leaving: **{churn_percent:.1f}%**")
-    
-    delta_sign = "+" if churn_prob >= 0.5 else "-"
-    st.metric(
-        label="Overall Risk Score", 
-        value=f"{churn_percent:.1f}%", 
-        delta=f"{delta_sign}{abs(churn_percent - 50):.1f}% vs baseline",
-        delta_color="inverse" if churn_prob < 0.5 else "normal"
-    )
+    # Invisible trigger that tells the CSS to style the container directly below it
+    st.markdown('<span class="glow-trigger"></span>', unsafe_allow_html=True)
+    with st.container(border=True):
+        st.markdown("### 🎯 **Risk Assessment**")
+        
+        if churn_prob >= 0.5:
+            st.error(f"### 🚨 High Churn Risk\n**Alert:** This customer is likely to leave.\n\nProbability of leaving: **{churn_percent:.1f}%**")
+        else:
+            st.success(f"### ✅ Low Churn Risk\n**Status:** This customer is currently safe.\n\nProbability of leaving: **{churn_percent:.1f}%**")
+        
+        delta_sign = "+" if churn_prob >= 0.5 else "-"
+        st.metric(
+            label="Overall Risk Score", 
+            value=f"{churn_percent:.1f}%", 
+            delta=f"{delta_sign}{abs(churn_percent - 50):.1f}% vs baseline",
+            delta_color="inverse" if churn_prob < 0.5 else "normal"
+        )
 
 with col_right:
-    # Container is removed - the column itself becomes the glowing card!
-    st.markdown("### 💡 **Main Risk Factors**")
-    st.caption("The main reasons influencing this customer's risk score:")
-    
-    if len(top_risk_factors) > 0:
-        for feat, val in top_risk_factors.head(4).items():
-            raw_val = raw_inputs[feat]
-            st.markdown(f"🔹 **{feat}**: `{raw_val}`")
-    else:
-        st.info("No major risk factors detected for this profile.")
+    # Invisible trigger for the second box
+    st.markdown('<span class="glow-trigger"></span>', unsafe_allow_html=True)
+    with st.container(border=True):
+        st.markdown("### 💡 **Main Risk Factors**")
+        st.caption("The main reasons influencing this customer's risk score:")
+        
+        if len(top_risk_factors) > 0:
+            for feat, val in top_risk_factors.head(4).items():
+                raw_val = raw_inputs[feat]
+                st.markdown(f"🔹 **{feat}**: `{raw_val}`")
+        else:
+            st.info("No major risk factors detected for this profile.")
 
 st.markdown("<br>", unsafe_allow_html=True)
 
