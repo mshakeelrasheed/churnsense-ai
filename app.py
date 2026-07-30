@@ -68,26 +68,27 @@ st.markdown("""
     /* ==========================================
        BULLETPROOF CONTAINER GLOW CSS 
        ========================================== */
-    /* Target ANY bordered wrapper using wildcard selectors to bypass Streamlit Cloud DOM changes */
-    [data-testid*="BorderWrapper"],
-    [data-testid="stExpander"] details,
-    [data-testid="stStatusWidget"] div[role="status"] {
+    
+    /* 1. Structural Selector: Targets the outermost boxes inside columns directly */
+    html body [data-testid="column"] > div > .element-container > div,
+    /* 2. Direct Fallback: Native bordered wrappers */
+    html body [data-testid="stVerticalBlockBorderWrapper"],
+    /* 3. Expanders and Status Widgets */
+    html body [data-testid="stExpander"] details,
+    html body [data-testid="stStatusWidget"] div[role="status"] {
         border-radius: 16px !important;
         transition: all 0.3s ease-in-out !important;
-        position: relative !important;
-        z-index: 1 !important;
     }
 
-    /* Apply the Cyan Hover Effect with forced visibility */
-    [data-testid*="BorderWrapper"]:hover,
-    [data-testid="stExpander"] details:hover,
-    [data-testid="stStatusWidget"] div[role="status"]:hover {
+    /* Apply the Cyan Hover Effect with maximum !important specificity */
+    html body [data-testid="column"] > div > .element-container > div:hover,
+    html body [data-testid="stVerticalBlockBorderWrapper"]:hover,
+    html body [data-testid="stExpander"] details:hover,
+    html body [data-testid="stStatusWidget"] div[role="status"]:hover {
         border-color: #00E5FF !important;
-        border-width: 1px !important;
-        border-style: solid !important;
         box-shadow: 0 0 20px rgba(0, 229, 255, 0.4), inset 0 0 10px rgba(0, 229, 255, 0.15) !important;
         transform: translateY(-4px) !important;
-        z-index: 999 !important; /* Forces the glowing box to the front so shadows aren't clipped */
+        z-index: 9999 !important; /* Forces the box above neighboring elements so shadows aren't clipped */
     }
     </style>
 """, unsafe_allow_html=True)
