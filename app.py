@@ -17,6 +17,7 @@ st.set_page_config(
 )
 
 # Custom injection for dark-mode modern SaaS design frameworks
+# Kept existing card styling and added new premium header and animation CSS
 st.markdown("""
     <style>
     /* Transparent card wrappers with subtle hover pop */
@@ -36,14 +37,55 @@ st.markdown("""
         letter-spacing: 0.08rem;
         color: #8A99AD;
     }
+
+    /* Premium animated header styles */
+    .premium-header-container {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        font-family: 'Inter', sans-serif;
+    }
+
+    .premium-header-container .static-part {
+        color: white;
+        font-size: 3rem !important;
+        font-weight: 700 !important;
+        margin-bottom: -15px; /* Compact spacing */
+    }
+
+    .premium-header-container .gradient-part {
+        font-size: 4.5rem !important;
+        font-weight: 700 !important;
+        background-image: linear-gradient(120deg, #E05C6F 0%, #A378D1 35%, #6DAEED 70%, #6DAEED 100%);
+        background-size: 200% auto;
+        -webkit-background-clip: text;
+        color: transparent;
+        animation: premiumGradientSweep 6s linear infinite;
+    }
+
+    @keyframes premiumGradientSweep {
+        0% {
+            background-position: 0% 50%;
+        }
+        100% {
+            background-position: 100% 50%;
+        }
+    }
     </style>
 """, unsafe_allow_html=True)
 
 # App Navigation Header Row
 col_header, col_badge = st.columns([4, 1])
 with col_header:
-    st.title("🔮 ChurnSense AI — Customer Intelligence Hub")
-    st.caption("Identify customer risk, understand key drivers, and view suggested retention strategies.")
+    # --- MODIFIED: Custom animated heading to look like the image ---
+    premium_header_html = """
+    <div class='premium-header-container'>
+        <div class='static-part'>I build AI systems that</div>
+        <div class='gradient-part gradient-text'>verify before they act.</div>
+    </div>
+    """
+    st.markdown(premium_header_html, unsafe_allow_html=True)
+    # The original title and caption are replaced by the custom HTML above
 with col_badge:
     st.markdown("<br>", unsafe_allow_html=True)
     st.status("Model Version v2.1", state="complete")
@@ -157,6 +199,7 @@ top_risk_factors = sample_shap[sample_shap > 0].sort_values(ascending=False)
 # ==========================================
 # 5. SPLIT-PANEL CORE DISPLAY ANALYSIS GRID
 # ==========================================
+# Kept identical logic and layout
 col_left, col_right = st.columns([1, 1.1])
 
 with col_left:
@@ -195,6 +238,7 @@ st.markdown("<br>", unsafe_allow_html=True)
 # ==========================================
 # 6. SUGGESTED RECOMMENDATIONS 
 # ==========================================
+# Kept identical logic and playbooks
 st.subheader("📋 **Suggested Actions**")
 
 # Logic engine tracking
@@ -228,6 +272,7 @@ st.markdown("---")
 # ==========================================
 # 7. ADVANCED SHAP ANALYSIS (COLLAPSIBLE)
 # ==========================================
+# Kept identical collisional SHAP visualization logic
 with st.expander("🔍 **Advanced Analysis (SHAP Graph)**", expanded=False):
     st.caption("This visualization breaks down exactly how much each feature contributed to the final probability calculation.")
     fig, ax = plt.subplots(figsize=(8, 4))
