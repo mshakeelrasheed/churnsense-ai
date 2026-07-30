@@ -17,7 +17,6 @@ st.set_page_config(
 )
 
 # Custom injection for dark-mode modern SaaS design frameworks
-# Kept existing card styling and added new premium header and animation CSS
 st.markdown("""
     <style>
     /* Transparent card wrappers with subtle hover pop */
@@ -44,32 +43,30 @@ st.markdown("""
         flex-direction: column;
         align-items: flex-start;
         font-family: 'Inter', sans-serif;
+        margin-bottom: 15px;
     }
 
     .premium-header-container .static-part {
         color: white;
-        font-size: 3rem !important;
+        font-size: 2.5rem !important;
         font-weight: 700 !important;
-        margin-bottom: -15px; /* Compact spacing */
+        margin-bottom: -10px;
     }
 
     .premium-header-container .gradient-part {
-        font-size: 4.5rem !important;
-        font-weight: 700 !important;
+        font-size: 4rem !important;
+        font-weight: 800 !important;
         background-image: linear-gradient(120deg, #E05C6F 0%, #A378D1 35%, #6DAEED 70%, #6DAEED 100%);
         background-size: 200% auto;
         -webkit-background-clip: text;
         color: transparent;
         animation: premiumGradientSweep 6s linear infinite;
+        line-height: 1.1;
     }
 
     @keyframes premiumGradientSweep {
-        0% {
-            background-position: 0% 50%;
-        }
-        100% {
-            background-position: 100% 50%;
-        }
+        0% { background-position: 0% 50%; }
+        100% { background-position: 100% 50%; }
     }
     </style>
 """, unsafe_allow_html=True)
@@ -77,15 +74,14 @@ st.markdown("""
 # App Navigation Header Row
 col_header, col_badge = st.columns([4, 1])
 with col_header:
-    # --- MODIFIED: Custom animated heading to look like the image ---
     premium_header_html = """
     <div class='premium-header-container'>
-        <div class='static-part'>I build AI systems that</div>
-        <div class='gradient-part gradient-text'>verify before they act.</div>
+        <div class='static-part'>🔮 ChurnSense AI &mdash;</div>
+        <div class='gradient-part'>Customer Intelligence Hub</div>
     </div>
     """
     st.markdown(premium_header_html, unsafe_allow_html=True)
-    # The original title and caption are replaced by the custom HTML above
+    st.caption("Identify customer risk, understand key drivers, and view suggested retention strategies.")
 with col_badge:
     st.markdown("<br>", unsafe_allow_html=True)
     st.status("Model Version v2.1", state="complete")
@@ -186,7 +182,7 @@ scaled_df = pd.DataFrame(scaled_features, columns=FEATURE_ORDER)
 
 with st.spinner("Analyzing customer profile..."):
     if not auto_mode:
-        time.sleep(0.5) # Slight delay for manual mode to show analysis is running
+        time.sleep(0.5) 
     churn_prob = float(model.predict_proba(scaled_df)[0][1])
     churn_percent = churn_prob * 100
 
@@ -199,20 +195,17 @@ top_risk_factors = sample_shap[sample_shap > 0].sort_values(ascending=False)
 # ==========================================
 # 5. SPLIT-PANEL CORE DISPLAY ANALYSIS GRID
 # ==========================================
-# Kept identical logic and layout
 col_left, col_right = st.columns([1, 1.1])
 
 with col_left:
     with st.container(border=True):
         st.markdown("### 🎯 **Risk Assessment**")
         
-        # Display contextual color banners and status values
         if churn_prob >= 0.5:
             st.error(f"### 🚨 High Churn Risk\n**Alert:** This customer is likely to leave.\n\nProbability of leaving: **{churn_percent:.1f}%**")
         else:
             st.success(f"### ✅ Low Churn Risk\n**Status:** This customer is currently safe.\n\nProbability of leaving: **{churn_percent:.1f}%**")
         
-        # High impact metric card UI design
         delta_sign = "+" if churn_prob >= 0.5 else "-"
         st.metric(
             label="Overall Risk Score", 
@@ -238,10 +231,8 @@ st.markdown("<br>", unsafe_allow_html=True)
 # ==========================================
 # 6. SUGGESTED RECOMMENDATIONS 
 # ==========================================
-# Kept identical logic and playbooks
 st.subheader("📋 **Suggested Actions**")
 
-# Logic engine tracking
 recs = []
 if complain == 1:
     recs.append(("🚨 Resolve Complaint", "This customer has an active complaint. Reach out immediately to resolve their issue and offer a small store credit as an apology."))
@@ -259,7 +250,6 @@ if not recs:
         st.balloons() 
         st.success("🎉 **Customer is Healthy:** No immediate action is required. Maintain standard marketing communications.")
 else:
-    # Render interactive status log elements
     with st.status("Generating recommendations based on profile...", expanded=True) as playbook_status:
         if auto_mode:
             time.sleep(0.3)
@@ -272,13 +262,10 @@ st.markdown("---")
 # ==========================================
 # 7. ADVANCED SHAP ANALYSIS (COLLAPSIBLE)
 # ==========================================
-# Kept identical collisional SHAP visualization logic
 with st.expander("🔍 **Advanced Analysis (SHAP Graph)**", expanded=False):
     st.caption("This visualization breaks down exactly how much each feature contributed to the final probability calculation.")
     fig, ax = plt.subplots(figsize=(8, 4))
-    # Generate the waterfall plot
     shap.plots.waterfall(shap_vals[0], show=False)
-    # Tweak the plot styling for dark mode visibility
     fig.patch.set_facecolor('#0E1117')
     ax.set_facecolor('#0E1117')
     ax.tick_params(colors='white')
