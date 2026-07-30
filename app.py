@@ -49,9 +49,9 @@ st.markdown("""
     }
 
     .premium-header-container .gradient-part {
-        font-size: 3.2rem !important; /* Slightly smaller to fit standard screens */
+        font-size: 3.2rem !important; 
         font-weight: 800 !important;
-        white-space: nowrap !important; /* Forces text to stay on one line */
+        white-space: nowrap !important; 
         background-image: linear-gradient(120deg, #E05C6F 0%, #A378D1 35%, #6DAEED 70%, #6DAEED 100%);
         background-size: 200% auto;
         -webkit-background-clip: text;
@@ -65,18 +65,21 @@ st.markdown("""
         100% { background-position: 100% 50%; }
     }
 
-    /* Target Bordered Containers, Expanders, and Status Widgets for the Glow & Rounded Corners */
+    /* Target Bordered Containers, Expanders, and Status Widgets structurally to guarantee they catch the CSS */
     div[data-testid="stVerticalBlockBorderWrapper"],
+    div[data-testid="column"] > div > div:first-child, /* Forces the structural top boxes in columns to catch the theme */
     div[data-testid="stExpander"] details,
     div[data-testid="stStatusWidget"] div[role="status"] {
         border-radius: 16px !important;
         transition: all 0.3s ease-in-out !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
     }
 
     /* Apply Cyan Glow on Hover */
     div[data-testid="stVerticalBlockBorderWrapper"]:hover,
-    div[data-testid="stExpander"]:hover details,
-    div[data-testid="stStatusWidget"]:hover div[role="status"] {
+    div[data-testid="column"] > div > div:first-child:hover,
+    div[data-testid="stExpander"] details:hover,
+    div[data-testid="stStatusWidget"] div[role="status"]:hover {
         border-color: #00E5FF !important;
         box-shadow: 0 0 15px rgba(0, 229, 255, 0.4), inset 0 0 10px rgba(0, 229, 255, 0.1) !important;
         transform: translateY(-3px) !important;
