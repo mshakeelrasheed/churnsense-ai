@@ -19,11 +19,16 @@ st.set_page_config(
 # Custom injection for dark-mode modern SaaS design frameworks
 st.markdown("""
     <style>
-    /* Transparent card wrappers with subtle hover pop */
-    .stElementContainer:hover {
-        transform: translateY(-2px);
+    /* Container Hover Glow Effect */
+    div[data-testid="stVerticalBlockBorderWrapper"] {
         transition: all 0.3s ease-in-out;
     }
+    div[data-testid="stVerticalBlockBorderWrapper"]:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 0 20px rgba(0, 229, 255, 0.4), inset 0 0 10px rgba(0, 229, 255, 0.1);
+        border-color: rgba(0, 229, 255, 0.8) !important;
+    }
+
     /* Styling high-contrast metric values */
     div[data-testid="stMetricValue"] {
         font-family: 'Inter', sans-serif;
