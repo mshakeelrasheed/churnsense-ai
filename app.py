@@ -4,18 +4,55 @@ import numpy as np
 import joblib
 import shap
 import matplotlib.pyplot as plt
+import time
 
-# 1. Page Config
+# ==========================================
+# 1. PREMIUM PAGE ENGINE & THEME CONFIG
+# ==========================================
 st.set_page_config(
     page_title="ChurnSense AI — Intelligence Dashboard",
     page_icon="🔮",
-    layout="wide"
+    layout="wide",
+    initial_sidebar_state="expanded"
 )
 
-st.title("🔮 ChurnSense AI — Customer Churn Intelligence")
-st.write("Predict customer churn risk, identify top risk factors, and view automated retention strategies.")
+# Custom injection for dark-mode modern SaaS design frameworks
+st.markdown("""
+    <style>
+    /* Transparent card wrappers with subtle hover pop */
+    .stElementContainer:hover {
+        transform: translateY(-2px);
+        transition: all 0.3s ease-in-out;
+    }
+    /* Styling high-contrast metric values */
+    div[data-testid="stMetricValue"] {
+        font-family: 'Inter', sans-serif;
+        font-size: 2.3rem !important;
+        font-weight: 700 !important;
+    }
+    div[data-testid="stMetricLabel"] {
+        font-size: 0.85rem !important;
+        text-transform: uppercase;
+        letter-spacing: 0.08rem;
+        color: #8A99AD;
+    }
+    </style>
+""", unsafe_allow_html=True)
 
-# 2. Load Model & Preprocessors
+# App Navigation Header Row
+col_header, col_badge = st.columns([4, 1])
+with col_header:
+    st.title("🔮 ChurnSense AI — Customer Intelligence Hub")
+    st.caption("Predict enterprise churn risk vectors, capture behavioral drivers, and dispatch automated target retention playbooks.")
+with col_badge:
+    st.markdown("<br>", unsafe_allow_html=True)
+    st.status("Model Version v2.1", state="complete")
+
+st.markdown("---")
+
+# ==========================================
+# 2. CACHED MODEL & PREPROCESSOR ARTIFACTS
+# ==========================================
 @st.cache_resource
 def load_artifacts():
     model = joblib.load("xgboost_model.pkl")
@@ -26,7 +63,7 @@ def load_artifacts():
 try:
     model, scaler, encoders = load_artifacts()
 except Exception as e:
-    st.error(f"Error loading model artifacts: {e}")
+    st.error(f"❌ Critical error loading model artifacts: {e}")
     st.stop()
 
 # Feature order expected by scaler and model
@@ -38,14 +75,17 @@ FEATURE_ORDER = [
     'DaySinceLastOrder', 'CashbackAmount'
 ]
 
-# 3. Sidebar Inputs
-st.sidebar.header("🎯 Primary Customer Profile")
+# ==========================================
+# 3. INTERACTIVE SIDEBAR CONFIGURATOR
+# ==========================================
+st.sidebar.markdown("### 🎯 **Primary Customer Profile**")
+st.sidebar.caption("Adjust configuration telemetry values below:")
 
 # Primary High-Impact Features
 tenure = st.sidebar.number_input("Tenure (Months)", min_value=0, max_value=60, value=2)
-complain = st.sidebar.selectbox("Customer Has Active Complaint?", [0, 1], format_func=lambda x: "Yes (1)" if x == 1 else "No (0)")
+complain = st.sidebar.segmented_control("Customer Has Active Complaint?", [0, 1], format_func=lambda x: "Yes" if x == 1 else "No", default=0)
 days_since_last_order = st.sidebar.number_input("Days Since Last Order", min_value=0, max_value=60, value=12)
-satisfaction_score = st.sidebar.slider("Satisfaction Score (1 = Low, 5 = High)", 1, 5, 2)
+satisfaction_score = st.sidebar.slider("Satisfaction Score", 1, 5, 2)
 number_of_address = st.sidebar.number_input("Number of Addresses Registered", min_value=1, max_value=20, value=3)
 cashback_amount = st.sidebar.number_input("Cashback Amount ($)", min_value=0.0, max_value=500.0, value=120.0)
 preferred_order_cat = st.sidebar.selectbox("Preferred Order Category", ["Laptop & Accessory", "Mobile Phone", "Fashion", "Grocery", "Others"])
@@ -66,27 +106,16 @@ with st.sidebar.expander("⚙️ Additional Profile Details", expanded=False):
 
 # Collect Raw Inputs
 raw_inputs = {
-    'Tenure': tenure,
-    'PreferredLoginDevice': login_device,
-    'CityTier': city_tier,
-    'WarehouseToHome': warehouse_to_home,
-    'PreferredPaymentMode': preferred_payment,
-    'Gender': gender,
-    'HourSpendOnApp': hours_spend_app,
-    'NumberOfDeviceRegistered': devices_registered,
-    'PreferedOrderCat': preferred_order_cat,
-    'SatisfactionScore': satisfaction_score,
-    'MaritalStatus': marital_status,
-    'NumberOfAddress': number_of_address,
-    'Complain': complain,
-    'OrderAmountHikeFromlastYear': order_hike,
-    'CouponUsed': coupon_used,
-    'OrderCount': order_count,
-    'DaySinceLastOrder': days_since_last_order,
-    'CashbackAmount': cashback_amount
+    'Tenure': tenure, 'PreferredLoginDevice': login_device, 'CityTier': city_tier,
+    'WarehouseToHome': warehouse_to_home, 'PreferredPaymentMode': preferred_payment,
+    'Gender': gender, 'HourSpendOnApp': hours_spend_app, 'NumberOfDeviceRegistered': devices_registered,
+    'PreferedOrderCat': preferred_order_cat, 'SatisfactionScore': satisfaction_score,
+    'MaritalStatus': marital_status, 'NumberOfAddress': number_of_address, 'Complain': complain,
+    'OrderAmountHikeFromlastYear': order_hike, 'CouponUsed': coupon_used, 'OrderCount': order_count,
+    'DaySinceLastOrder': days_since_last_order, 'CashbackAmount': cashback_amount
 }
 
-# Encode Categoricals
+# Encode Categoricals Safely
 encoded_inputs = raw_inputs.copy()
 for col in ['PreferredLoginDevice', 'PreferredPaymentMode', 'Gender', 'PreferedOrderCat', 'MaritalStatus']:
     if col in encoders:
@@ -95,78 +124,89 @@ for col in ['PreferredLoginDevice', 'PreferredPaymentMode', 'Gender', 'PreferedO
         except Exception:
             encoded_inputs[col] = 0
 
-# Convert to DataFrame in exact feature order
+# Convert to structured frame mapping
 input_df = pd.DataFrame([encoded_inputs])[FEATURE_ORDER]
-
-# Scale features
 scaled_features = scaler.transform(input_df)
 scaled_df = pd.DataFrame(scaled_features, columns=FEATURE_ORDER)
 
-# 4. Model Prediction
-churn_prob = float(model.predict_proba(scaled_df)[0][1])
-churn_percent = churn_prob * 100
+# ==========================================
+# 4. RUN INFERENCE & ANIMATE LOAD TRANSITION
+# ==========================================
+with st.spinner("Analyzing profile telemetry vectors..."):
+    churn_prob = float(model.predict_proba(scaled_df)[0][1])
+    churn_percent = churn_prob * 100
 
-st.divider()
-
-# 5. Top Section: Prediction & Key Risk Drivers
-col_left, col_right = st.columns([1, 1.2])
-
-with col_left:
-    st.subheader("🎯 Risk Assessment")
-    if churn_prob >= 0.5:
-        st.error(f"### 🚨 High Churn Risk\n**Probability of Churning:** {churn_percent:.1f}%")
-    else:
-        st.success(f"### ✅ Low Churn Risk\n**Probability of Churning:** {churn_percent:.1f}%")
-
-    st.metric(
-        label="Overall Churn Score", 
-        value=f"{churn_percent:.1f}%", 
-        delta=f"{'+' if churn_prob >= 0.5 else '-'}{abs(churn_percent - 50):.1f}% relative to baseline threshold"
-    )
-
-# Compute SHAP values
+# Compute SHAP math elements behind scenes
 explainer = shap.TreeExplainer(model)
 shap_vals = explainer(scaled_df)
 sample_shap = pd.Series(shap_vals.values[0], index=FEATURE_ORDER)
-
-# Positive SHAP = Increasing Churn Risk
 top_risk_factors = sample_shap[sample_shap > 0].sort_values(ascending=False)
 
+# ==========================================
+# 5. SPLIT-PANEL CORE DISPLAY ANALYSIS GRID
+# ==========================================
+col_left, col_right = st.columns([1, 1.1])
+
+with col_left:
+    with st.container(border=True):
+        st.markdown("### 🎯 **Risk Assessment Metrics**")
+        
+        # Display contextual color banners and status values
+        if churn_prob >= 0.5:
+            st.error(f"### 🚨 High Churn Risk Explored\n**Action Status Required:** Probability stands at **{churn_percent:.1f}%**")
+        else:
+            st.success(f"### ✅ Low Churn Risk Maintained\n**Action Status Monitored:** Probability stands at **{churn_percent:.1f}%**")
+        
+        # High impact metric card UI design
+        delta_sign = "+" if churn_prob >= 0.5 else "-"
+        st.metric(
+            label="Overall Churn Telemetry Score", 
+            value=f"{churn_percent:.1f}%", 
+            delta=f"{delta_sign}{abs(churn_percent - 50):.1f}% vs baseline risk threshold",
+            delta_color="inverse" if churn_prob < 0.5 else "normal"
+        )
+
 with col_right:
-    st.subheader("💡 Key Drivers Behind This Risk")
-    if len(top_risk_factors) > 0:
-        st.write("Top factors increasing churn probability for this customer:")
-        for feat, val in top_risk_factors.head(4).items():
-            raw_val = raw_inputs[feat]
-            st.markdown(f"• **{feat}** (Current Value: `{raw_val}`)")
-    else:
-        st.write("No severe risk factors detected for this customer profile.")
+    with st.container(border=True):
+        st.markdown("### 💡 **Neural Key Drivers**")
+        st.caption("Highest impact feature vectors forcing positive risk drift for this customer file:")
+        
+        if len(top_risk_factors) > 0:
+            for feat, val in top_risk_factors.head(4).items():
+                raw_val = raw_inputs[feat]
+                # Utilizing individual status wrappers as premium visual pill bars
+                st.markdown(f"🔹 **{feat}** is elevated (Current Metric: `{raw_val}`)")
+        else:
+            st.info("No risk-driving anomalies detected within this configuration file.")
 
-st.divider()
+st.markdown("<br>", unsafe_allow_html=True)
 
-# 6. Retention Action Recommendations
-st.subheader("📋 Recommended Retention Actions")
+# ==========================================
+# 6. AUTOMATED RETENTION RECOMMENDATIONS 
+# ==========================================
+st.subheader("📋 Autonomous Action Playbooks")
+
+# Logic engine tracking
 recs = []
-
 if complain == 1:
-    recs.append("🚨 **Unresolved Complaint:** Escalate open issue to priority support immediately and offer goodwill store credit.")
+    recs.append(("🚨 Priority Support Escalation", "Unresolved Customer Complaint detected. Route ticket immediately to premier accounts squad and issue a $25 system credit gesture."))
 if satisfaction_score <= 2:
-    recs.append("⭐ **Low Satisfaction Score:** Trigger automated feedback outreach with direct support follow-up.")
+    recs.append(("⭐ Target Satisfaction Campaign", "Low satisfaction rating recorded. Trigger outbound CX automated review schedule with a standard follow-up call."))
 if days_since_last_order > 14:
-    recs.append(f"🛒 **Inactivity Alert:** Send a personalized re-engagement campaign with a discount code for `{preferred_order_cat}`.")
+    recs.append(("🛒 Active Inactivity Re-engagement", f"User inactivity window exceeded. Automate target drop voucher tailored precisely to categories like: **{preferred_order_cat}**."))
 if tenure <= 3:
-    recs.append("🆕 **Early-Stage Risk:** Enroll customer in early-stage onboarding flow with special welcome perks.")
+    recs.append(("🆕 VIP Onboarding Fast-Track", "Early account phase risk alert. Enroll individual profile into interactive high-touch satisfaction checkpoints."))
 if cashback_amount < 100:
-    recs.append("💰 **Incentive Push:** Offer temporary cashback boost to encourage higher purchase frequency.")
+    recs.append(("💰 Financial Loyalty Boost", "Sub-optimal account interaction. Apply a structural 2x cashback growth milestone challenge block to spark checkout activity."))
 
 if not recs:
-    recs.append("✅ **Healthy Profile:** Customer displays positive retention indicators. Maintain normal engagement.")
-
-for rec in recs:
-    st.info(rec)
-
-# 7. Collapsible Advanced SHAP Visualizer
-with st.expander("🔍 View Technical SHAP Breakdown (For ML Engineers)", expanded=False):
-    fig, ax = plt.subplots(figsize=(8, 4))
-    shap.plots.waterfall(shap_vals[0], show=False)
-    st.pyplot(fig)
+    with st.container(border=True):
+        st.balloons() # Trigger minor visual achievement celebration
+        st.success("🎉 **Optimal Profile Ecosystem:** Customer accounts display high retention values. Keep default standard automated workflow pipelines active.")
+else:
+    # Render premium interactive status log elements sequentially
+    with st.status("Analyzing retention pathways...", expanded=True) as playbook_status:
+        time.sleep(0.7)
+        for label, description in recs:
+            with st.container(border=True):
+                st.markdown(f"**{label}**")
