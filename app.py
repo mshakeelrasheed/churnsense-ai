@@ -65,19 +65,24 @@ st.markdown("""
         100% { background-position: 100% 50%; }
     }
 
-    /* Target Bordered Containers, Expanders, and Status Widgets structurally to guarantee they catch the CSS */
+    /* ==========================================
+       BULLETPROOF CONTAINER GLOW CSS
+       ========================================== */
+    /* 1. Structural targeting for the main Risk Assessment & Risk Factor Boxes */
+    div[data-testid="column"] > div:nth-child(1) > div > div,
+    /* 2. Fallback for native bordered wrappers */
     div[data-testid="stVerticalBlockBorderWrapper"],
-    div[data-testid="column"] > div > div:first-child, /* Forces the structural top boxes in columns to catch the theme */
+    /* 3. Expander targeting */
     div[data-testid="stExpander"] details,
+    /* 4. Status playbooks targeting */
     div[data-testid="stStatusWidget"] div[role="status"] {
         border-radius: 16px !important;
         transition: all 0.3s ease-in-out !important;
-        border: 1px solid rgba(255, 255, 255, 0.1) !important;
     }
 
-    /* Apply Cyan Glow on Hover */
+    /* Apply the Cyan Hover Effect */
+    div[data-testid="column"] > div:nth-child(1) > div > div:hover,
     div[data-testid="stVerticalBlockBorderWrapper"]:hover,
-    div[data-testid="column"] > div > div:first-child:hover,
     div[data-testid="stExpander"] details:hover,
     div[data-testid="stStatusWidget"] div[role="status"]:hover {
         border-color: #00E5FF !important;
