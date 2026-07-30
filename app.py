@@ -75,6 +75,7 @@ st.markdown("""
         background-color: #0E1117; /* Matches standard Streamlit dark mode */
         transition: all 0.3s ease-in-out !important;
         box-sizing: border-box;
+        height: 100%;
     }
 
     .custom-glow-card:hover {
@@ -248,23 +249,20 @@ else:
 delta_val = f"{delta_arrow} {abs(churn_percent - 50):.1f}% vs baseline"
 
 with col_left:
-    left_card_html = f"""
-    <div class="custom-glow-card">
-        <h3 style="margin-top:0; font-size: 1.5rem; font-weight: 600; color: white;">🎯 Risk Assessment</h3>
-        
-        <div style="background-color: {alert_bg}; border: 1px solid {alert_border}; border-radius: 8px; padding: 16px; margin: 16px 0;">
-            <h4 style="margin: 0 0 8px 0; color: {alert_text}; font-size: 1.25rem;">{alert_title}</h4>
-            <p style="margin: 0; font-size: 1rem; color: #e0e0e0;">{alert_msg}</p>
-            <p style="margin: 12px 0 0 0; font-size: 1rem; color: #e0e0e0;">Probability of leaving: <strong>{churn_percent:.1f}%</strong></p>
-        </div>
-        
-        <div style="display: flex; flex-direction: column; margin-top: 24px;">
-            <span style="font-size: 0.85rem; color: #8A99AD; text-transform: uppercase; letter-spacing: 0.08rem;">Overall Risk Score</span>
-            <span style="font-size: 2.3rem; font-weight: 700; margin: 6px 0; color: white;">{churn_percent:.1f}%</span>
-            <span style="color: {delta_color}; font-weight: 600; font-size: 0.95rem; background: {delta_bg}; width: fit-content; padding: 4px 10px; border-radius: 12px;">{delta_val}</span>
-        </div>
-    </div>
-    """
+    # Removed indentation so Markdown parser doesn't convert it into a code block
+    left_card_html = f"""<div class="custom-glow-card">
+<h3 style="margin-top:0; font-size: 1.5rem; font-weight: 600; color: white;">🎯 Risk Assessment</h3>
+<div style="background-color: {alert_bg}; border: 1px solid {alert_border}; border-radius: 8px; padding: 16px; margin: 16px 0;">
+<h4 style="margin: 0 0 8px 0; color: {alert_text}; font-size: 1.25rem;">{alert_title}</h4>
+<p style="margin: 0; font-size: 1rem; color: #e0e0e0;">{alert_msg}</p>
+<p style="margin: 12px 0 0 0; font-size: 1rem; color: #e0e0e0;">Probability of leaving: <strong>{churn_percent:.1f}%</strong></p>
+</div>
+<div style="display: flex; flex-direction: column; margin-top: 24px;">
+<span style="font-size: 0.85rem; color: #8A99AD; text-transform: uppercase; letter-spacing: 0.08rem;">Overall Risk Score</span>
+<span style="font-size: 2.3rem; font-weight: 700; margin: 6px 0; color: white;">{churn_percent:.1f}%</span>
+<span style="color: {delta_color}; font-weight: 600; font-size: 0.95rem; background: {delta_bg}; width: fit-content; padding: 4px 10px; border-radius: 12px;">{delta_val}</span>
+</div>
+</div>"""
     st.markdown(left_card_html, unsafe_allow_html=True)
 
 with col_right:
@@ -276,13 +274,12 @@ with col_right:
     else:
         factors_html = '<div style="background: rgba(255, 255, 255, 0.05); padding: 15px; border-radius: 8px; color: #e0e0e0;">No major risk factors detected for this profile.</div>'
 
-    right_card_html = f"""
-    <div class="custom-glow-card">
-        <h3 style="margin-top:0; font-size: 1.5rem; font-weight: 600; color: white;">💡 Main Risk Factors</h3>
-        <p style="color: #8A99AD; font-size: 1rem; margin-bottom: 24px;">The main reasons influencing this customer's risk score:</p>
-        {factors_html}
-    </div>
-    """
+    # Removed indentation so Markdown parser doesn't convert it into a code block
+    right_card_html = f"""<div class="custom-glow-card">
+<h3 style="margin-top:0; font-size: 1.5rem; font-weight: 600; color: white;">💡 Main Risk Factors</h3>
+<p style="color: #8A99AD; font-size: 1rem; margin-bottom: 24px;">The main reasons influencing this customer's risk score:</p>
+{factors_html}
+</div>"""
     st.markdown(right_card_html, unsafe_allow_html=True)
 
 st.markdown("<br>", unsafe_allow_html=True)
