@@ -10,7 +10,7 @@ import time
 # 1. PAGE ENGINE & THEME CONFIG
 # ==========================================
 st.set_page_config(
-    page_title="ChurnSense AI — Intelligence Dashboard",
+    page_title="ChurnSense AI - Intelligence Dashboard",
     page_icon="🔮",
     layout="wide",
     initial_sidebar_state="expanded"
