@@ -66,28 +66,28 @@ st.markdown("""
     }
 
     /* ==========================================
-       BULLETPROOF CONTAINER GLOW CSS
+       BULLETPROOF CONTAINER GLOW CSS 
        ========================================== */
-    /* 1. Structural targeting for the main Risk Assessment & Risk Factor Boxes */
-    div[data-testid="column"] > div:nth-child(1) > div > div,
-    /* 2. Fallback for native bordered wrappers */
-    div[data-testid="stVerticalBlockBorderWrapper"],
-    /* 3. Expander targeting */
-    div[data-testid="stExpander"] details,
-    /* 4. Status playbooks targeting */
-    div[data-testid="stStatusWidget"] div[role="status"] {
+    /* Target ANY bordered wrapper using wildcard selectors to bypass Streamlit Cloud DOM changes */
+    [data-testid*="BorderWrapper"],
+    [data-testid="stExpander"] details,
+    [data-testid="stStatusWidget"] div[role="status"] {
         border-radius: 16px !important;
         transition: all 0.3s ease-in-out !important;
+        position: relative !important;
+        z-index: 1 !important;
     }
 
-    /* Apply the Cyan Hover Effect */
-    div[data-testid="column"] > div:nth-child(1) > div > div:hover,
-    div[data-testid="stVerticalBlockBorderWrapper"]:hover,
-    div[data-testid="stExpander"] details:hover,
-    div[data-testid="stStatusWidget"] div[role="status"]:hover {
+    /* Apply the Cyan Hover Effect with forced visibility */
+    [data-testid*="BorderWrapper"]:hover,
+    [data-testid="stExpander"] details:hover,
+    [data-testid="stStatusWidget"] div[role="status"]:hover {
         border-color: #00E5FF !important;
-        box-shadow: 0 0 15px rgba(0, 229, 255, 0.4), inset 0 0 10px rgba(0, 229, 255, 0.1) !important;
-        transform: translateY(-3px) !important;
+        border-width: 1px !important;
+        border-style: solid !important;
+        box-shadow: 0 0 20px rgba(0, 229, 255, 0.4), inset 0 0 10px rgba(0, 229, 255, 0.15) !important;
+        transform: translateY(-4px) !important;
+        z-index: 999 !important; /* Forces the glowing box to the front so shadows aren't clipped */
     }
     </style>
 """, unsafe_allow_html=True)
