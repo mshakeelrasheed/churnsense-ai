@@ -19,16 +19,6 @@ st.set_page_config(
 # Custom injection for dark-mode modern SaaS design frameworks
 st.markdown("""
     <style>
-    /* Container Hover Glow Effect */
-    div[data-testid="stVerticalBlockBorderWrapper"] {
-        transition: all 0.3s ease-in-out;
-    }
-    div[data-testid="stVerticalBlockBorderWrapper"]:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 0 20px rgba(0, 229, 255, 0.4), inset 0 0 10px rgba(0, 229, 255, 0.1);
-        border-color: rgba(0, 229, 255, 0.8) !important;
-    }
-
     /* Styling high-contrast metric values */
     div[data-testid="stMetricValue"] {
         font-family: 'Inter', sans-serif;
@@ -59,19 +49,37 @@ st.markdown("""
     }
 
     .premium-header-container .gradient-part {
-        font-size: 4rem !important;
+        font-size: 3.2rem !important; /* Slightly smaller to fit standard screens */
         font-weight: 800 !important;
+        white-space: nowrap !important; /* Forces text to stay on one line */
         background-image: linear-gradient(120deg, #E05C6F 0%, #A378D1 35%, #6DAEED 70%, #6DAEED 100%);
         background-size: 200% auto;
         -webkit-background-clip: text;
         color: transparent;
         animation: premiumGradientSweep 6s linear infinite;
-        line-height: 1.1;
+        line-height: 1.2;
     }
 
     @keyframes premiumGradientSweep {
         0% { background-position: 0% 50%; }
         100% { background-position: 100% 50%; }
+    }
+
+    /* Target Bordered Containers, Expanders, and Status Widgets for the Glow & Rounded Corners */
+    div[data-testid="stVerticalBlockBorderWrapper"],
+    div[data-testid="stExpander"] details,
+    div[data-testid="stStatusWidget"] div[role="status"] {
+        border-radius: 16px !important;
+        transition: all 0.3s ease-in-out !important;
+    }
+
+    /* Apply Cyan Glow on Hover */
+    div[data-testid="stVerticalBlockBorderWrapper"]:hover,
+    div[data-testid="stExpander"]:hover details,
+    div[data-testid="stStatusWidget"]:hover div[role="status"] {
+        border-color: #00E5FF !important;
+        box-shadow: 0 0 15px rgba(0, 229, 255, 0.4), inset 0 0 10px rgba(0, 229, 255, 0.1) !important;
+        transform: translateY(-3px) !important;
     }
     </style>
 """, unsafe_allow_html=True)
