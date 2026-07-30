@@ -66,23 +66,24 @@ st.markdown("""
     }
 
     /* ==========================================
-       THE SIBLING TARGET CSS (GUARANTEED GLOW)
+       THE BULLETPROOF HTML CARD GLOW
        ========================================== */
-    
-    /* 1. Target the container immediately following our invisible '.glow-trigger' marker */
-    div.element-container:has(.glow-trigger) + div.element-container > div {
-        border-radius: 16px !important;
+    .custom-glow-card {
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 16px;
+        padding: 1.5rem;
+        background-color: #0E1117; /* Matches standard Streamlit dark mode */
         transition: all 0.3s ease-in-out !important;
+        box-sizing: border-box;
     }
 
-    /* Apply the Cyan Hover Effect */
-    div.element-container:has(.glow-trigger) + div.element-container > div:hover {
+    .custom-glow-card:hover {
         border-color: #00E5FF !important;
         box-shadow: 0 0 20px rgba(0, 229, 255, 0.4), inset 0 0 10px rgba(0, 229, 255, 0.15) !important;
         transform: translateY(-4px) !important;
     }
 
-    /* 2. Retain the glow for the existing Expanders and Status Widgets */
+    /* Ensure standard Streamlit widgets at the bottom keep glowing */
     [data-testid="stExpander"] details,
     [data-testid="stStatusWidget"] div[role="status"] {
         border-radius: 16px !important;
@@ -220,42 +221,69 @@ sample_shap = pd.Series(shap_vals.values[0], index=FEATURE_ORDER)
 top_risk_factors = sample_shap[sample_shap > 0].sort_values(ascending=False)
 
 # ==========================================
-# 5. SPLIT-PANEL CORE DISPLAY ANALYSIS GRID
+# 5. SPLIT-PANEL CORE DISPLAY ANALYSIS GRID (BULLETPROOF HTML)
 # ==========================================
 col_left, col_right = st.columns([1, 1.1])
 
+# Dynamic Status Math and CSS generation
+if churn_prob >= 0.5:
+    alert_bg = "rgba(255, 75, 75, 0.15)"
+    alert_border = "rgba(255, 75, 75, 0.4)"
+    alert_title = "🚨 High Churn Risk"
+    alert_msg = "Alert: This customer is likely to leave."
+    alert_text = "#ff4b4b"
+    delta_bg = "rgba(255, 75, 75, 0.2)"
+    delta_color = "#ff4b4b"
+    delta_arrow = "↑"
+else:
+    alert_bg = "rgba(9, 171, 59, 0.15)"
+    alert_border = "rgba(9, 171, 59, 0.4)"
+    alert_title = "✅ Low Churn Risk"
+    alert_msg = "Status: This customer is currently safe."
+    alert_text = "#09ab3b"
+    delta_bg = "rgba(9, 171, 59, 0.2)"
+    delta_color = "#09ab3b"
+    delta_arrow = "↓"
+
+delta_val = f"{delta_arrow} {abs(churn_percent - 50):.1f}% vs baseline"
+
 with col_left:
-    # Invisible trigger that tells the CSS to style the container directly below it
-    st.markdown('<span class="glow-trigger"></span>', unsafe_allow_html=True)
-    with st.container(border=True):
-        st.markdown("### 🎯 **Risk Assessment**")
+    left_card_html = f"""
+    <div class="custom-glow-card">
+        <h3 style="margin-top:0; font-size: 1.5rem; font-weight: 600; color: white;">🎯 Risk Assessment</h3>
         
-        if churn_prob >= 0.5:
-            st.error(f"### 🚨 High Churn Risk\n**Alert:** This customer is likely to leave.\n\nProbability of leaving: **{churn_percent:.1f}%**")
-        else:
-            st.success(f"### ✅ Low Churn Risk\n**Status:** This customer is currently safe.\n\nProbability of leaving: **{churn_percent:.1f}%**")
+        <div style="background-color: {alert_bg}; border: 1px solid {alert_border}; border-radius: 8px; padding: 16px; margin: 16px 0;">
+            <h4 style="margin: 0 0 8px 0; color: {alert_text}; font-size: 1.25rem;">{alert_title}</h4>
+            <p style="margin: 0; font-size: 1rem; color: #e0e0e0;">{alert_msg}</p>
+            <p style="margin: 12px 0 0 0; font-size: 1rem; color: #e0e0e0;">Probability of leaving: <strong>{churn_percent:.1f}%</strong></p>
+        </div>
         
-        delta_sign = "+" if churn_prob >= 0.5 else "-"
-        st.metric(
-            label="Overall Risk Score", 
-            value=f"{churn_percent:.1f}%", 
-            delta=f"{delta_sign}{abs(churn_percent - 50):.1f}% vs baseline",
-            delta_color="inverse" if churn_prob < 0.5 else "normal"
-        )
+        <div style="display: flex; flex-direction: column; margin-top: 24px;">
+            <span style="font-size: 0.85rem; color: #8A99AD; text-transform: uppercase; letter-spacing: 0.08rem;">Overall Risk Score</span>
+            <span style="font-size: 2.3rem; font-weight: 700; margin: 6px 0; color: white;">{churn_percent:.1f}%</span>
+            <span style="color: {delta_color}; font-weight: 600; font-size: 0.95rem; background: {delta_bg}; width: fit-content; padding: 4px 10px; border-radius: 12px;">{delta_val}</span>
+        </div>
+    </div>
+    """
+    st.markdown(left_card_html, unsafe_allow_html=True)
 
 with col_right:
-    # Invisible trigger for the second box
-    st.markdown('<span class="glow-trigger"></span>', unsafe_allow_html=True)
-    with st.container(border=True):
-        st.markdown("### 💡 **Main Risk Factors**")
-        st.caption("The main reasons influencing this customer's risk score:")
-        
-        if len(top_risk_factors) > 0:
-            for feat, val in top_risk_factors.head(4).items():
-                raw_val = raw_inputs[feat]
-                st.markdown(f"🔹 **{feat}**: `{raw_val}`")
-        else:
-            st.info("No major risk factors detected for this profile.")
+    factors_html = ""
+    if len(top_risk_factors) > 0:
+        for feat, val in top_risk_factors.head(4).items():
+            raw_val = raw_inputs[feat]
+            factors_html += f'<div style="margin-bottom: 16px; color: #e0e0e0; font-size: 1rem;">🔹 <strong>{feat}</strong>: <span style="color: #00E5FF; background: rgba(0, 229, 255, 0.1); padding: 4px 8px; border-radius: 6px; font-family: monospace; font-size: 0.95rem;">{raw_val}</span></div>'
+    else:
+        factors_html = '<div style="background: rgba(255, 255, 255, 0.05); padding: 15px; border-radius: 8px; color: #e0e0e0;">No major risk factors detected for this profile.</div>'
+
+    right_card_html = f"""
+    <div class="custom-glow-card">
+        <h3 style="margin-top:0; font-size: 1.5rem; font-weight: 600; color: white;">💡 Main Risk Factors</h3>
+        <p style="color: #8A99AD; font-size: 1rem; margin-bottom: 24px;">The main reasons influencing this customer's risk score:</p>
+        {factors_html}
+    </div>
+    """
+    st.markdown(right_card_html, unsafe_allow_html=True)
 
 st.markdown("<br>", unsafe_allow_html=True)
 
