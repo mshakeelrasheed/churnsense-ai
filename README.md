@@ -72,45 +72,48 @@ Enter a customer profile, get an instant churn risk score, understand the key ri
 
 ```mermaid
 flowchart TD
-    A[📦 Kaggle Dataset\nE-Commerce Customer Churn] --> B
+    A[Kaggle Dataset - E-Commerce Customer Churn] --> B
 
-    subgraph EDA["📊 Exploratory Data Analysis"]
-        B[Missing Value Analysis] --> C[Distribution & Correlation Study]
+    subgraph EDA[Exploratory Data Analysis]
+        B[Missing Value Analysis] --> C[Distribution and Correlation Study]
         C --> D[Feature Relationship Exploration]
     end
 
-    subgraph Preprocessing["🧹 Data Preprocessing"]
+    subgraph Preprocessing[Data Preprocessing]
         D --> E[Missing Value Imputation]
-        E --> F[Label & One-Hot Encoding]
+        E --> F[Label and One-Hot Encoding]
         F --> G[Feature Scaling]
     end
 
-    subgraph Modeling["🏋️ Model Benchmarking — 5 Algorithms"]
+    subgraph Modeling[Model Benchmarking - 5 Algorithms]
         G --> H1[Logistic Regression]
         G --> H2[SVM]
         G --> H3[Decision Tree]
         G --> H4[Random Forest]
-        G --> H5[⭐ XGBoost]
+        G --> H5[XGBoost - Best Model]
     end
 
-    subgraph Evaluation["📏 Evaluation"]
-        H1 & H2 & H3 & H4 --> I1[Baseline Results]
-        H5 --> I2[99.1% Accuracy\n0.999 ROC-AUC ✅]
+    subgraph Evaluation[Model Evaluation]
+        H1 --> I1[Baseline Results]
+        H2 --> I1
+        H3 --> I1
+        H4 --> I1
+        H5 --> I2[99.1% Accuracy - 0.999 ROC-AUC]
     end
 
-    subgraph XAI["🔍 Explainable AI — SHAP"]
+    subgraph XAI[Explainable AI - SHAP]
         I2 --> J1[Global Feature Importance]
         I2 --> J2[Individual Prediction Breakdown]
     end
 
-    subgraph App["🌐 Streamlit Production App"]
+    subgraph App[Streamlit Production App]
         J1 --> K[Churn Risk Score]
         J2 --> K
         K --> L[Main Risk Factors]
         L --> M[Automated Retention Strategy]
     end
 
-    M --> N[👤 Business / Retention Team]
+    M --> N[Business and Retention Team]
 ```
 
 ---
@@ -259,7 +262,7 @@ If you found this project useful, please consider giving it a ⭐
 **M. Shakeel Rasheed**
 *AI Engineer · Machine Learning · NLP · Agentic AI*
 
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-0A66C2?style=flat&logo=linkedin)](https://www.linkedin.com/in/mshakeelrasheed)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-0A66C2?style=flat&logo=linkedin)](https://www.linkedin.com/in/muhammad-shakeel-rasheed)
 [![GitHub](https://img.shields.io/badge/GitHub-Follow-181717?style=flat&logo=github)](https://github.com/mshakeelrasheed)
 [![HuggingFace](https://img.shields.io/badge/HuggingFace-Profile-FFD21E?style=flat&logo=huggingface&logoColor=black)](https://huggingface.co/mshakeelrasheed)
 
